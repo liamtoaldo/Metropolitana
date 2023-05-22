@@ -44,6 +44,11 @@
                 session_start();
                 $_SESSION["Username"] = $username;
 
+                //see if the user toogled "remember me"
+                if(isset($_POST["remember"])) {
+                    // Create cookie with duration 7 days to remember the user
+                    setcookie("Username", $username, time() + (86400 * 7), "/");
+                }
                 //redirect to home
                 header("Location: index.php");
             }
@@ -54,7 +59,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Flogodownload.org%2Fwp-content%2Fuploads%2F2017%2F03%2Fas-roma-logo-0-1536x1536.png">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.png">
 
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -66,7 +71,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
             
     <!-- Change primary color -->
-    <script src="scripts/changeColor.js"></script>
+    <script src="../scripts/changeColor.js"></script>
 </head>
 <body class="dark">
     <div class="my-wrapper container valign-wrapper">

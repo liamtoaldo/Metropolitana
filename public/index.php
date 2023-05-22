@@ -1,6 +1,6 @@
 <!DOCTYPE HTML>
 <html>
-<title>Metropolitana - Login</title>
+<title>Metropolitana</title>
 
 <head>
     <?php
@@ -8,8 +8,11 @@
     $username = NULL;
     if (isset($_SESSION["Username"])) {
         $username = $_SESSION["Username"];
+    } else if(isset($_COOKIE["Username"])) {
+        $username = $_COOKIE["Username"];
     } else {
         header('Location:login.php');
+
     }
 
     ?>
@@ -32,6 +35,7 @@
             transform: translate(-50%, -50%);
             z-index: 9999;
             display: none;
+            /* Comment if the spinner is needed */
         }
 
         .logo-img {
@@ -40,14 +44,29 @@
             display: inline-block;
         }
 
-        /* Increase the font size of the navigation links */
         nav ul li a {
+            display: flex;
+            align-items: center;
             font-size: 18px;
         }
+
+        nav ul li a i {
+            margin-right: 5px;
+        }
+
+        nav ul li a p {
+            margin: 0;
+        }
+
 
         /* Increase the font size of the logo */
         .brand-logo {
             font-size: 24px;
+        }
+
+        /* Hide the page content by default */
+        #page-content {
+            display: none;
         }
     </style>
 
@@ -55,7 +74,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/oJTV2bZ.png">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.png">
 
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -67,21 +86,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
     <!-- Change primary color -->
-    <script src="scripts/changeColor.js"></script>
+    <script src="../scripts/changeColor.js"></script>
 
-    <script>
-        // Show the spinner element when the page starts loading
-        window.addEventListener('load', function () {
-            const spinner = document.getElementById('loading-spinner');
-            spinner.style.display = 'block';
-        });
-
-        // Hide the spinner element when the page finishes loading
-        window.addEventListener('DOMContentLoaded', function () {
-            const spinner = document.getElementById('loading-spinner');
-            spinner.style.display = 'none';
-        });
-    </script>
 </head>
 
 <body>
@@ -109,14 +115,17 @@
                 <a href="#" class="brand-logo"><img class="logo-img" src="https://i.imgur.com/oJTV2bZ.png"
                         alt="Logo"></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
-                    <li><a href="page1.html">Page 1</a></li>
+                    <li><a href="prenotazioni.php"><i class="large material-icons">confirmation_number</i>
+                            <p>Prenotazioni</p>
+                        </a></li>
                     <li><a href="page2.html">Page 2</a></li>
-                    <li><a href="page3.html">Page 3</a></li>
+                    <li><a href="account.php"><i class="large material-icons">person</i></a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- TODO calcolo percorso nella home -->
 </body>
 
 </html>
