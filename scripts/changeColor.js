@@ -21,6 +21,14 @@ $(".input-field").css("color", themeColor);
 $(".input-field>.material-icons").css("color", themeColor);
 $(".input-field>label").css("color", themeColor);
 $(".dropdown-content>li>a").css("color", themeColor);
+$('.dropdown-content li span').css('color', themeColor);
+// Change the color of the timepicker
+$('.timepicker-digital-display').css('background-color', themeColor);
+$('.timepicker-close').css('color', themeColor);
+// Change the clock hand color
+$('.timepicker-hour-hand').css('background-color', themeColor);
+$('.timepicker-minute-hand').css('background-color', themeColor);
+$('.timepicker-second-hand').css('background-color', themeColor);
 
 $(document).ready(function () {
 
@@ -46,6 +54,14 @@ $(document).ready(function () {
     $(".input-field>label").css("color", themeColor);
     $(".btn-floating").css("background-color", themeColor);
     $(".dropdown-content>li>a").css("color", themeColor);
+    $('.dropdown-content li span').css('color', themeColor);
+    // Change the color of the timepicker
+    $('.timepicker-digital-display').css('background-color', themeColor);
+    $('.timepicker-close').css('color', themeColor);
+    // Change the clock hand color
+    $('.timepicker-hour-hand').css('background-color', themeColor);
+    $('.timepicker-minute-hand').css('background-color', themeColor);
+    $('.timepicker-second-hand').css('background-color', themeColor);
 
     // Update Theme Color
     if (typeof (Storage) !== "undefined") {

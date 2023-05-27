@@ -15,6 +15,9 @@
 
     }
 
+    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn->set_charset('utf8');
+
     ?>
     <style>
         /* Spinner styles */
@@ -108,8 +111,16 @@
             border-radius: 15px;
             opacity: 0.8;
         }
+
+        .clockpicker-popover {
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%);
+        }
     </style>
 
+    <!-- Accents -->
+    <meta charset="UTF-8">
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
@@ -125,8 +136,6 @@
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-    <!-- Change primary color -->
-    <script src="../scripts/changeColor.js"></script>
 
     <!-- Leaflet CSS & JavaScript -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -185,21 +194,38 @@
     <!-- Container for form and map -->
     <div id="form-container">
         <form>
-            <!-- Form elements go here -->
             <div class="input-field">
-                <i class="material-icons prefix">account_circle</i>
-                <input id="username" type="text" class="validate" name="username" required>
-                <label for="username">Username</label>
+                <i class="material-icons prefix">location_on</i>
+                <select>
+                    <option value="" disabled selected>Scegli un'opzione</option>
+                    <?php
+                    $query = "SELECT * FROM stazione";
+
+                    $result = $conn->execute_query($query);
+                    $stazioni = $result->fetch_all();
+                    foreach ($stazioni as $staz) {
+                        echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                    }
+                    ?>
+                </select>
+                <label>Da</label>
             </div>
             <div class="input-field">
-                <i class="material-icons prefix">face</i>
-                <input id="name" type="text" class="validate" name="name" required>
-                <label for="name">Nome</label>
+                <i class="material-icons prefix">where_to_vote</i>
+                <select>
+                    <option value="" disabled selected>Scegli un'opzione</option>
+                    <?php
+                    foreach ($stazioni as $staz) {
+                        echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                    }
+                    ?>
+                </select>
+                <label>A</label>
             </div>
             <div class="input-field">
-                <i class="material-icons prefix">face</i>
-                <input id="surname" type="text" class="validate" name="surname" required>
-                <label for="surname">Cognome</label>
+                <i class="material-icons prefix">schedule</i>
+                <input id="timepicker" type="text" class="timepicker" value="00:00">
+                <label>Data</label>
             </div>
             <div class="input-field">
                 <i class="material-icons prefix">assignment_ind</i>
@@ -255,27 +281,76 @@
     <script>
         // Replace these coordinates with the desired location
         //TODO replace with location of station
-        const defaultCenter = [40.7128, -74.0060]; // Example: New York City
-        const defaultZoom = 18; // Choose the appropriate zoom level
+        const defaultCenter = [41.8905358, 12.4742367]; // Rome
+        const defaultZoom = 20; // Choose the appropriate zoom level
 
         // Create a Leaflet map and add it to the "mapid" div
         var map = L.map('map', {
             center: defaultCenter,
             zoom: defaultZoom,
-            minZoom: defaultZoom - 2,
             zoomControl: false
         });
 
         // Add a tile layer to the map
-        L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=PXGDSOhr00eYHoUVbDwz', {
+        L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=PXGDSOhr00eYHoUVbDwz', {
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         }).addTo(map);
+
+        var marker = L.marker([41.8905358, 12.4742367], {
+            label: "Prova",
+            labelOptions: {
+                noHide: true,
+                textSize: "16px"
+            }
+        }).addTo(map);
+        marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
+        var latlngs = [
+            [45.51, -122.68],
+            [37.77, -122.43],
+            [34.04, -118.2]
+        ];
+
+        var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+
+        // zoom the map to the polyline
+        map.fitBounds(polyline.getBounds());
 
     </script>
 
     <script>
+        //Initialize the dropdown trigger for account menu
         $('.dropdown-trigger').dropdown();
+        //Initialize dropdown listener
+        $(document).ready(function () {
+            $('select').formSelect();
+        });
+        //Initialize time picker
+        $(document).ready(function () {
+            $('.timepicker').timepicker({
+                default: 'now',
+                twelvehour: false,
+                donetext: 'OK',
+                cleartext: 'Clear',
+                canceltext: 'Cancel',
+                autoclose: false,
+                ampmclickable: true,
+                aftershow: function () { },
+                format: 'dd/MM/yyyy HH:mm' // Italian date format
+            });
+            $('#timepicker').timepicker({
+                container: 'body',
+                twelveHour: false,
+                i18n: {
+                    cancel: 'Annulla',
+                    clear: 'Cancella',
+                    done: 'OK'
+                }
+            });
+        });
+
     </script>
+    <!-- Change primary color -->
+    <script src="../scripts/changeColor.js"></script>
 </body>
 
 </html>
