@@ -117,6 +117,11 @@
             left: 50% !important;
             transform: translate(-50%, -50%);
         }
+
+        .custom-collection-item {
+            padding-left: 16px !important;
+        }
+    </style>
     </style>
 
     <!-- Accents -->
@@ -193,84 +198,71 @@
     </nav>
     <!-- Container for form and map -->
     <div id="form-container">
-        <form>
-            <div class="input-field">
-                <i class="material-icons prefix">location_on</i>
-                <select>
-                    <option value="" disabled selected>Scegli un'opzione</option>
-                    <?php
-                    $query = "SELECT * FROM stazione";
+        <?php
+        //TODO importare codice da C#.
+        if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) { ?>
+            <ul class="collection">
+                <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
+                    <div class="route-number" style="font-size: 24px; font-weight: bold; margin-right: 30px;">
+                        1. <!-- Big bold number indicating the ith route -->
+                    </div>
+                    <div>
+                        <p>Stop 1 <i class="material-icons" style="font-size: 18px;">arrow_forward</i> Stop 2</p>
+                        <p>10:00-10:30</p>
+                    </div>
+                </li>
+            </ul>
 
-                    $result = $conn->execute_query($query);
-                    $stazioni = $result->fetch_all();
-                    foreach ($stazioni as $staz) {
-                        echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
-                    }
-                    ?>
-                </select>
-                <label>Da</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">where_to_vote</i>
-                <select>
-                    <option value="" disabled selected>Scegli un'opzione</option>
-                    <?php
-                    foreach ($stazioni as $staz) {
-                        echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
-                    }
-                    ?>
-                </select>
-                <label>A</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">schedule</i>
-                <input id="timepicker" type="text" class="timepicker" value="00:00">
-                <label>Data</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">assignment_ind</i>
-                <input id="cf" type="text" class="validate" name="cf" required>
-                <label for="cf">Codice Fiscale</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">123</i>
-                <input id="age" type="number" class="validate" name="age" min="18" required>
-                <label for="age">Età</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">work</i>
-                <input id="job" type="text" class="validate" name="job">
-                <label for="job">Professione</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">lock</i>
-                <input id="password" type="password" class="validate" name="password">
-                <label for="password">Password</label>
-            </div>
-            <div class="input-field">
-                <i class="material-icons prefix">lock</i>
-                <input id="password2" type="password" class="validate" name="password2">
-                <label for="password2">Conferma Password</label>
-            </div>
-            <div class="col s12 m12 l12">
-                <label>
-                    <input type="checkbox" class="filled-in" checked="checked" name="remember" value="yes" />
-                    <span>Ricordami</span>
-                </label>
-            </div>
-            <br>
-            <a style="border-radius: 15px" class="waves-effect waves-red btn-flat" href="login.php">Fai
-                il Login
-                <i class="material-icons right">login</i>
-            </a>
-            <br>
-            <br>
-            <button style="border-radius: 15px" class="btn waves-effect waves-light" type="submit"
-                name="action">Registrati
-                <i class="material-icons right">person_add</i>
-            </button>
 
-        </form>
+
+            <?php
+        } else { ?>
+            <span class="card-title">
+                <h5><b>Calcola Percorso</b></h5>
+            </span>
+            <br>
+            <form method="get" action="<?php echo $_SERVER["PHP_SELF"] ?>">
+                <div class="input-field">
+                    <i class="material-icons prefix">location_on</i>
+                    <select name="from">
+                        <option value="" disabled selected>Scegli un'opzione</option>
+                        <?php
+                        $query = "SELECT * FROM stazione";
+
+                        $result = $conn->execute_query($query);
+                        $stazioni = $result->fetch_all();
+                        foreach ($stazioni as $staz) {
+                            echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                        }
+                        ?>
+                    </select>
+                    <label>Da</label>
+                </div>
+                <div class="input-field">
+                    <i class="material-icons prefix">where_to_vote</i>
+                    <select name="to">
+                        <option value="" disabled selected>Scegli un'opzione</option>
+                        <?php
+                        foreach ($stazioni as $staz) {
+                            echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                        }
+                        ?>
+                    </select>
+                    <label>A</label>
+                </div>
+                <div class="input-field">
+                    <i class="material-icons prefix">schedule</i>
+                    <input name="when" id="timepicker" type="text" class="timepicker" value="00:00">
+                    <label>Quando</label>
+                </div>
+                <button style="border-radius: 15px; width: 100%" class="btn waves-effect waves-light" type="submit"
+                    name="action">Calcola
+                    Percorso
+                    <i class="material-icons right">route</i>
+                </button>
+
+            </form>
+        <?php } ?>
     </div>
     <div id="map">
 
@@ -281,7 +273,7 @@
     <script>
         // Replace these coordinates with the desired location
         //TODO replace with location of station
-        const defaultCenter = [41.8905358, 12.4742367]; // Rome
+        const defaultCenter = [16.506174, 80.648015]; // Rome
         const defaultZoom = 20; // Choose the appropriate zoom level
 
         // Create a Leaflet map and add it to the "mapid" div
@@ -304,13 +296,50 @@
             }
         }).addTo(map);
         marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-        var latlngs = [
-            [45.51, -122.68],
-            [37.77, -122.43],
-            [34.04, -118.2]
+
+        var latLngs = [
+            [17.385044, 78.486671],
+            [16.506174, 80.648015],
+            [17.686816, 83.218482],
+            [13.082680, 80.270718],
+            [12.971599, 77.594563],
+            [15.828126, 78.037279]
         ];
 
-        var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+        // Create a polyline with white circles at each position
+        var polyline = L.polyline(latLngs, { color: 'blue' });
+
+        // Add the polyline to the map
+        polyline.addTo(map);
+        var greenIcon = L.icon({
+            iconUrl: 'http://clipart-library.com/new_gallery/circle-clipart-72.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -20]
+        });
+
+        var redIcon = L.icon({
+            iconUrl: 'https://i.stack.imgur.com/Ybbvc.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -20]
+        });
+        var customIcon = L.icon({
+            iconUrl: '../images/marker.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -20]
+        });
+
+        // Adding markers with custom icons at each position
+        latLngs.forEach(function (latLng, index) {
+            var mark = L.marker(latLng).setIcon(index === 0 ? greenIcon : (index === latLngs.length - 1 ? redIcon : customIcon))
+                .addTo(map);
+            mark.bindPopup("<b>Hello world!</b><br>I am a popup.");
+            if(index===0) {
+                mark.openPopup();
+            }
+        });
 
         // zoom the map to the polyline
         map.fitBounds(polyline.getBounds());
