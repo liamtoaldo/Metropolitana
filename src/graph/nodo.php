@@ -20,6 +20,9 @@ class Nodo implements NodoInterface
     {
         return $this->Stazione->Nome;
     }
+    public function hashCode() {
+        return md5($this->Stazione->Nome);
+    }
 }
 
 interface NodoInterface

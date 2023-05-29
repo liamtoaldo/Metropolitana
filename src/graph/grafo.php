@@ -68,41 +68,40 @@ class Grafo
         }
     }
 
-
     public function dijkstra(Nodo $inizio, Nodo $fine)
     {
-        $costiTotali = new SplObjectStorage;
-        $nodiPrecedenti = [];
+        $costiTotali = new ObjectStorage();
+        $nodiPrecedenti = new ObjectStorage();
         $percorso = [];
-        $priorityQueue = new SplObjectStorage;
+        $priorityQueue = new ObjectStorage();
         $visitati = [];
 
         $costiTotali[$inizio] = 0;
         $priorityQueue[$inizio] = 0;
 
         foreach ($this->Nodi as $nodo) {
-            if ($nodo !== $inizio) {
+            if ($nodo != $inizio) {
                 $costiTotali[$nodo] = PHP_INT_MAX;
             }
         }
 
-        while (!empty($priorityQueue)) {
-            $piuPiccolo = $priorityQueue[array_search(min($priorityQueue), $priorityQueue)];
-            $priorityQueue[$piuPiccolo] = PHP_INT_MAX;
-            unset($priorityQueue[$piuPiccolo]);
+        while ($priorityQueue->count() > 0) {
+            $piuPiccolo = $this->getMinValueKey($priorityQueue);
+            $priorityQueue->offsetSet($piuPiccolo, PHP_INT_MAX);
+            $priorityQueue->offsetUnset($piuPiccolo);
 
             foreach ($this->viciniDi($piuPiccolo) as $vicino) {
-                if (!in_array($vicino, $visitati, true)) {
-                    $priorityQueue[$vicino] = $costiTotali[$piuPiccolo] + $this->archi[$piuPiccolo][$vicino]->peso;
+                if (!in_array($vicino, $visitati)) {
+                    $priorityQueue->offsetSet($vicino, $costiTotali->offsetGet($piuPiccolo) + $this->getArco($piuPiccolo, $vicino)->Peso);
 
-                    $costoStradaAlternativa = $costiTotali[$piuPiccolo] + $this->archi[$piuPiccolo][$vicino]->peso;
-
-                    if ($costoStradaAlternativa < $costiTotali[$vicino]) {
+                    $costoStradaAlternativa = $costiTotali->offsetGet($piuPiccolo) + $this->getArco($piuPiccolo, $vicino)->Peso;
+                    $val = $costiTotali[$vicino];
+                    if ($costoStradaAlternativa < $costiTotali->offsetGet($vicino)) {
                         $costiTotali[$vicino] = $costoStradaAlternativa;
-                        if (!$nodiPrecedenti->contains($vicino)) {
+                        if (!isset($nodiPrecedenti[$vicino])) {
                             $nodiPrecedenti[$vicino] = $piuPiccolo;
                         }
-                        $priorityQueue[$vicino] = $costoStradaAlternativa;
+                        $priorityQueue->offsetSet($vicino, $costoStradaAlternativa);
                     }
                 }
             }
@@ -118,8 +117,11 @@ class Grafo
             $tmp = $nodiPrecedenti[$tmp];
         }
         $percorso = array_reverse($percorso);
+        var_dump($percorso);
         return $percorso;
     }
+
+
 
     private function viciniDi(Nodo $nodo)
     {
@@ -131,5 +133,32 @@ class Grafo
         }
         return $vicini;
     }
+
+    private function getMinValueKey(SplObjectStorage $storage)
+    {
+        $minValue = PHP_INT_MAX;
+        $minKey = null;
+
+        foreach ($storage as $key) {
+            $value = $storage[$key];
+            if ($value < $minValue) {
+                $minValue = $value;
+                $minKey = $key;
+            }
+        }
+
+        return $minKey;
+    }
+
+    private function getArco(Nodo $partenza, Nodo $arrivo): Arco
+    {
+        foreach ($this->Archi as $arco) {
+            if ($arco->Partenza == $partenza && $arco->Arrivo == $arrivo) {
+                return $arco;
+            }
+        }
+        return null;
+    }
+
 }
 ?>

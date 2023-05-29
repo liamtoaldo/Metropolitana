@@ -9,6 +9,7 @@
     include '../src/graph/grafo.php';
     include '../src/graph/arco.php';
     include '../src/graph/nodo.php';
+    include '../src/graph/objectStorage.php';
 
 
     session_start();
@@ -129,7 +130,6 @@
             padding-left: 16px !important;
         }
     </style>
-    </style>
 
     <!-- Accents -->
     <meta charset="UTF-8">
@@ -230,10 +230,26 @@
             $grafo = createGraph($grafo, $stazioni);
         }
 
-        //TODO
-        // $grafo->dijkstra(new Nodo($));
-        
-        if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) { ?>
+
+        if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) {
+            $from = $_GET["from"];
+            $to = $_GET["to"];
+            $when = $_GET["when"];
+
+            //Find stations from array that match the ones chosen by the user
+            $partenza = array_filter($stazioni, function ($staz) use ($from) {
+                return $staz->Nome === $from;
+            });
+            $partenza = array_values($partenza);
+            $arrivo = array_filter($stazioni, function ($staz) use ($to) {
+                return $staz->Nome === $to;
+            });
+            $arrivo = array_values($arrivo);
+
+            $grafo->dijkstra(new Nodo($partenza[0]), new Nodo($arrivo[0]));
+
+
+            ?>
             <ul class="collection">
                 <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
                     <div class="route-number" style="font-size: 24px; font-weight: bold; margin-right: 30px;">
