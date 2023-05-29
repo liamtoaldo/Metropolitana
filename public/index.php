@@ -4,6 +4,13 @@
 
 <head>
     <?php
+    include '../src/dbObjects/stazione_passa_linea.php';
+    include '../src/dbObjects/stazione.php';
+    include '../src/graph/grafo.php';
+    include '../src/graph/arco.php';
+    include '../src/graph/nodo.php';
+
+
     session_start();
     $username = NULL;
     if (isset($_SESSION["Username"])) {
@@ -199,7 +206,33 @@
     <!-- Container for form and map -->
     <div id="form-container">
         <?php
-        //TODO importare codice da C#.
+
+        /* CODICE TRADOTTO DA C# */
+        $grafo = new Grafo();
+        //Obtain just stations
+        $query = "SELECT * FROM stazione";
+        $result = $conn->execute_query($query);
+        $stazioniArray = $result->fetch_all();
+        $stazioni = [];
+
+        $nodi;
+        foreach ($stazioniArray as $staz) {
+            //Fill teh stazioni array
+            $stazioni[] = new Stazione($staz[0], $staz[1], $staz[2]);
+            //Add nodes with stations to the graph
+            $nodi[] = new Nodo(new Stazione($staz[0], $staz[1], $staz[2]));
+        }
+
+        if (isset($_SESSION["grafo"])) {
+            $grafo = $_SESSION["grafo"];
+        } else {
+            $grafo->aggiungiNodi($nodi);
+            $grafo = createGraph($grafo, $stazioni);
+        }
+
+        //TODO
+        // $grafo->dijkstra(new Nodo($));
+        
         if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) { ?>
             <ul class="collection">
                 <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
@@ -227,12 +260,8 @@
                     <select name="from">
                         <option value="" disabled selected>Scegli un'opzione</option>
                         <?php
-                        $query = "SELECT * FROM stazione";
-
-                        $result = $conn->execute_query($query);
-                        $stazioni = $result->fetch_all();
                         foreach ($stazioni as $staz) {
-                            echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                            echo '<option value="' . $staz->Nome . '">' . $staz->Nome . '</option>';
                         }
                         ?>
                     </select>
@@ -244,7 +273,7 @@
                         <option value="" disabled selected>Scegli un'opzione</option>
                         <?php
                         foreach ($stazioni as $staz) {
-                            echo '<option value="' . $staz[0] . '">' . $staz[0] . '</option>';
+                            echo '<option value="' . $staz->Nome . '">' . $staz->Nome . '</option>';
                         }
                         ?>
                     </select>
@@ -336,7 +365,7 @@
             var mark = L.marker(latLng).setIcon(index === 0 ? greenIcon : (index === latLngs.length - 1 ? redIcon : customIcon))
                 .addTo(map);
             mark.bindPopup("<b>Hello world!</b><br>I am a popup.");
-            if(index===0) {
+            if (index === 0) {
                 mark.openPopup();
             }
         });
@@ -383,3 +412,76 @@
 </body>
 
 </html>
+
+
+<?php
+
+//Function to create a graph who already has nodes
+//Parameters: the graph and an array with all the stations inside the database to better query them to add them as nodes
+function createGraph(Grafo $grafo, array $stazioni): Grafo
+{
+    global $conn;
+    //Obtain the stazione with the respective lines
+    $query = "SELECT * FROM stazione_passa_linea";
+    $result = $conn->execute_query($query);
+    $stazioniLineate = [];
+    foreach ($result as $row) {
+        $stazioniLineate[] = new Stazione_passa_linea($row['Stazione_Nome'], $row['Linea_Nome'], $row['Posizione']);
+    }
+
+    foreach ($stazioniLineate as $stl) {
+        //TODO get station from stazioniArray that has same name as stl->StazioneNome
+        $st = array_filter($stazioni, function ($staz) use ($stl) {
+            return $staz->Nome === $stl->StazioneNome;
+        });
+        $st = array_values($st);
+        //Find the lines where this station is located
+        $lineeDiSt = array_filter($stazioniLineate, function ($s) use ($stl) {
+            return $s->StazioneNome === $stl->StazioneNome;
+        });
+
+        //Add the edges based on the adjacency of the stations
+        foreach ($lineeDiSt as $stLinea) {
+            //calculate the stations which have the same line as st and are in the position after the station
+            //ES:
+            // stazione | linea | posizione
+            //	  1			a		0
+            //	  2			a		1
+            $stazioniLineaDopoSt = array_filter($stazioniLineate, function ($s) use ($stLinea) {
+                return ($s->LineaNome == $stLinea->LineaNome) && ($s->Posizione == $stLinea->Posizione + 1);
+            });
+            //get array of stazione (nome, latitudine, longitudine) that matches the stazioneNome in stazioniLineaDopoSt
+            $stazioniDopoSt = array_filter($stazioni, function ($s) use ($stazioniLineaDopoSt) {
+                return array_filter($stazioniLineaDopoSt, function ($st) use ($s) {
+                    return $st->StazioneNome == $s->Nome;
+                });
+            });
+            $stazioniDopoSt = array_values($stazioniDopoSt);
+            foreach ($stazioniDopoSt as $stazioneDopo) {
+                $grafo->aggiungiArco(new Arco(new Nodo($st[0]), new Nodo($stazioneDopo), 1));
+            }
+
+
+            //calculate the stations which have the same line as st and are in the position before the station
+            $stazioniLineaPrimaSt = array_filter($stazioniLineate, function ($s) use ($stLinea) {
+                return ($s->LineaNome == $stLinea->LineaNome) && ($s->Posizione == $stLinea->Posizione - 1);
+            });
+            //get array of stazione (nome, latitudine, longitudine) that matches the stazioneNome in stazioniLineaPrimaSt
+            $stazioniPrimaSt = array_filter($stazioni, function ($s) use ($stazioniLineaPrimaSt) {
+                return array_filter($stazioniLineaPrimaSt, function ($st) use ($s) {
+                    return $st->StazioneNome == $s->Nome;
+                });
+            });
+            $stazioniPrimaSt = array_values($stazioniPrimaSt);
+            foreach ($stazioniPrimaSt as $stazionePrima) {
+                $grafo->aggiungiArco(new Arco(new Nodo($stazionePrima), new Nodo($st[0]), 1));
+            }
+        }
+
+    }
+    return $grafo;
+}
+
+
+
+?>
