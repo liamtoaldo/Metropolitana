@@ -171,6 +171,17 @@
 </head>
 
 <body>
+    <?php
+    if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) {
+        ?>
+        <div class="fixed-action-btn">
+            <a class="btn-floating btn-large red" title="Conferma prenotazione">
+                <i class="large material-icons">check</i>
+            </a>
+        </div>
+        <?php
+    }
+    ?>
     <!-- Navbar -->
     <!-- Spinner element -->
     <div id="loading-spinner">
@@ -251,6 +262,10 @@
             $to = $_GET["to"];
             $when = $_GET["when"];
 
+            //Show the floating action button
+            ?>
+
+            <?php
             //Find stations from array that match the ones chosen by the user
             $partenza = array_filter($stazioni, function ($staz) use ($from) {
                 return $staz->Nome === $from;
@@ -482,6 +497,10 @@
                     done: 'OK'
                 }
             });
+        });
+
+        document.querySelector('.btn-floating').addEventListener('click', function () {
+            window.location.href = 'prenotazione.php';
         });
 
     </script>
