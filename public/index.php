@@ -6,6 +6,7 @@
     <?php
     include '../src/dbObjects/stazione_passa_linea.php';
     include '../src/dbObjects/stazione.php';
+    include '../src/dbObjects/transiti.php';
     include '../src/graph/grafo.php';
     include '../src/graph/arco.php';
     include '../src/graph/nodo.php';
@@ -155,6 +156,17 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <script>
+        var latLngs = [
+        ];
+        var popups = [
+        ];
+        //Function called from php
+        function addStop(lat, lng, popupContent) {
+            latLngs.push([lat, lng]);
+            popups.push(popupContent);
+        }
+    </script>
 
 </head>
 
@@ -206,6 +218,8 @@
     <!-- Container for form and map -->
     <div id="form-container">
         <?php
+        //Set default zone to Rome, since it's rome subway
+        date_default_timezone_set('Europe/Rome');
 
         /* CODICE TRADOTTO DA C# */
         $grafo = new Grafo();
@@ -228,6 +242,7 @@
         } else {
             $grafo->aggiungiNodi($nodi);
             $grafo = createGraph($grafo, $stazioni);
+            $_SESSION["grafo"] = $grafo;
         }
 
 
@@ -246,22 +261,73 @@
             });
             $arrivo = array_values($arrivo);
 
-            $grafo->dijkstra(new Nodo($partenza[0]), new Nodo($arrivo[0]));
+            //Obtain the list of routes with Dijkstra
+            $percorso = $grafo->dijkstra(new Nodo($partenza[0]), new Nodo($arrivo[0]));
 
+            //Calculate costs and timetables after having the routes
+            $transiti = [];
+
+            //Get time 
+            $oraAttuale = $when;
+
+            for ($i = 0; $i < count($percorso) - 1; $i++) {
+                retry:
+                $versoOpposto = false;
+                //Find a transit with the first time possible
+                $transito = getTransitiFromStazioni($percorso[$i]->Stazione->Nome, $percorso[$i + 1]->Stazione->Nome, $oraAttuale);
+                if ($transito != null && !$versoOpposto) {
+                    // Update the current time to find the train that is after the one
+                    $oraAttuale = $transito->OraArrivo->format("H:i:s");
+                    $transiti[] = $transito;
+                } else {
+                    // If no transit is found, it means there is one available the next day (e.g., the reservation is made in the evening)
+                    $oraAttuale = (new DateTime("2000-01-01 00:00:00"))->format("H:i:s");
+                    goto retry;
+                }
+            }
 
             ?>
-            <ul class="collection">
-                <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
-                    <div class="route-number" style="font-size: 24px; font-weight: bold; margin-right: 30px;">
-                        1. <!-- Big bold number indicating the ith route -->
-                    </div>
-                    <div>
-                        <p>Stop 1 <i class="material-icons" style="font-size: 18px;">arrow_forward</i> Stop 2</p>
-                        <p>10:00-10:30</p>
-                    </div>
-                </li>
-            </ul>
+            <ul class="collection" style="max-height: 700px; overflow-y: auto;">
+                <?php
+                $i = 1;
+                foreach ($transiti as $transito) {
+                    ?>
+                    <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
+                        <div class="route-number" style="font-size: 24px; font-weight: bold; margin-right: 30px;">
+                            <?php
+                            echo $i . ".";
+                            ?>
+                        </div>
+                        <div>
+                            <?php
+                            echo '<div><p>' . $transito->StazionePartenza . '<i class="material-icons" style="font-size: 18px;">arrow_forward</i>' . $transito->StazioneArrivo . '</p>';
+                            echo '<p>' . $transito->OraPartenza->format("H:i:s") . '-' . $transito->OraArrivo->format("H:i:s") . '</p>';
+                            ?>
+                            <!-- <p>Stop 1 <i class="material-icons" style="font-size: 18px;">arrow_forward</i> Stop 2</p>
+                            <p>10:00-10:30</p> -->
+                        </div>
+                    </li>
+                    <?php
+                    //Get the two stations which have the same name as the one in transito
+                    $stop1 = array_filter($stazioni, function ($staz) use ($transito) {
+                        return $staz->Nome === $transito->StazionePartenza;
+                    });
+                    $stop1 = array_values($stop1);
+                    $stop2 = array_filter($stazioni, function ($staz) use ($transito) {
+                        return $staz->Nome === $transito->StazioneArrivo;
+                    });
+                    $stop2 = array_values($stop2);
 
+                    //Add the marker to the array of latitudes and longitudes that will be added later.
+                    echo "<script>addStop(" . $stop1[0]->Latitudine . ", " . $stop1[0]->Longitudine . ", '<b>" . $stop1[0]->Nome . "</b>');</script>";
+                    //Also add the last marker if it's the last value in array
+                    if ($transito->StazioneArrivo == $to) {
+                        echo "<script>addStop(" . $stop2[0]->Latitudine . ", " . $stop2[0]->Longitudine . ", '<b>" . $stop2[0]->Nome . "</b>');</script>";
+                    }
+                    $i++;
+                }
+                ?>
+            </ul>
 
 
             <?php
@@ -297,7 +363,7 @@
                 </div>
                 <div class="input-field">
                     <i class="material-icons prefix">schedule</i>
-                    <input name="when" id="timepicker" type="text" class="timepicker" value="00:00">
+                    <input name="when" id="timepicker" type="text" class="timepicker" value="<?php echo date("H:i"); ?>">
                     <label>Quando</label>
                 </div>
                 <button style="border-radius: 15px; width: 100%" class="btn waves-effect waves-light" type="submit"
@@ -316,10 +382,15 @@
 
     <!-- Your custom JS -->
     <script>
+        console.log("prova");
+        console.log(latLngs);
         // Replace these coordinates with the desired location
-        //TODO replace with location of station
-        const defaultCenter = [16.506174, 80.648015]; // Rome
-        const defaultZoom = 20; // Choose the appropriate zoom level
+        var defaultCenter = [41.9102088, 12.3711917];
+        var defaultZoom = 12; // Choose the appropriate zoom level
+        if (latLngs.length > 0) {
+            defaultCenter = latLngs[0]; // Rome
+            defaultZoom = 14;
+        }
 
         // Create a Leaflet map and add it to the "mapid" div
         var map = L.map('map', {
@@ -333,29 +404,7 @@
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         }).addTo(map);
 
-        var marker = L.marker([41.8905358, 12.4742367], {
-            label: "Prova",
-            labelOptions: {
-                noHide: true,
-                textSize: "16px"
-            }
-        }).addTo(map);
-        marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-
-        var latLngs = [
-            [17.385044, 78.486671],
-            [16.506174, 80.648015],
-            [17.686816, 83.218482],
-            [13.082680, 80.270718],
-            [12.971599, 77.594563],
-            [15.828126, 78.037279]
-        ];
-
-        // Create a polyline with white circles at each position
-        var polyline = L.polyline(latLngs, { color: 'blue' });
-
-        // Add the polyline to the map
-        polyline.addTo(map);
+        //Here are the icons for the map markers
         var greenIcon = L.icon({
             iconUrl: 'http://clipart-library.com/new_gallery/circle-clipart-72.png',
             iconSize: [20, 20],
@@ -376,18 +425,31 @@
             popupAnchor: [0, -20]
         });
 
-        // Adding markers with custom icons at each position
-        latLngs.forEach(function (latLng, index) {
-            var mark = L.marker(latLng).setIcon(index === 0 ? greenIcon : (index === latLngs.length - 1 ? redIcon : customIcon))
-                .addTo(map);
-            mark.bindPopup("<b>Hello world!</b><br>I am a popup.");
-            if (index === 0) {
-                mark.openPopup();
-            }
-        });
+        if (latLngs.length > 0) {
+            // Create a polyline with white circles at each position
+            var polyline = L.polyline(latLngs, { color: 'blue' });
 
-        // zoom the map to the polyline
-        map.fitBounds(polyline.getBounds());
+            // Add the polyline to the map
+            polyline.addTo(map);
+
+            // zoom the map to the polyline
+            map.fitBounds(polyline.getBounds());
+
+
+            //Function called from php
+            // Adding markers with custom icons at each position
+            console.log("Adding markers with custom icons");
+            console.log(latLngs);
+            latLngs.forEach(function (latLng, index) {
+                var mark = L.marker(latLng).setIcon(index === 0 ? greenIcon : (index === latLngs.length - 1 ? redIcon : customIcon))
+                    .addTo(map);
+                mark.bindPopup(popups[index]);
+                if (index === 0) {
+                    mark.openPopup();
+                }
+            });
+
+        }
 
     </script>
 
@@ -496,6 +558,34 @@ function createGraph(Grafo $grafo, array $stazioni): Grafo
 
     }
     return $grafo;
+}
+
+function getTransitiFromStazioni(string $stPartenza, string $stArrivo, string $ora)
+{
+    global $conn;
+    $stPartenza = str_replace("'", "''", $stPartenza);
+    $stArrivo = str_replace("'", "''", $stArrivo);
+    $subquery = "SELECT MIN(OraPartenza) FROM metro.transiti WHERE Stazione_Partenza = '$stPartenza' AND Stazione_Arrivo = '$stArrivo' AND OraPartenza >= '" . $ora . "'";
+    $query = "SELECT * FROM metro.transiti WHERE Stazione_Partenza = '$stPartenza' AND Stazione_Arrivo = '$stArrivo' AND OraPartenza >='" . $ora . "' HAVING OraPartenza = ($subquery)";
+
+    $result = $conn->execute_query($query);
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $transiti = new Transiti(
+            $row['Viaggio_idViaggio'],
+            $row['Stazione_Partenza'],
+            $row['Stazione_Arrivo'],
+            $row['InizioViaggio'],
+            $row['FineViaggio'],
+            new DateTime($row['OraPartenza']),
+            new DateTime($row['OraArrivo']),
+            $row['PosizioneNelViaggio'],
+            $row['CostoTransito']
+        );
+        return $transiti;
+    }
+    return null;
 }
 
 

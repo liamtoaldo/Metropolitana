@@ -68,7 +68,7 @@ class Grafo
         }
     }
 
-    public function dijkstra(Nodo $inizio, Nodo $fine)
+    public function dijkstra(Nodo $inizio, Nodo $fine): array
     {
         $costiTotali = new ObjectStorage();
         $nodiPrecedenti = new ObjectStorage();
@@ -117,7 +117,6 @@ class Grafo
             $tmp = $nodiPrecedenti[$tmp];
         }
         $percorso = array_reverse($percorso);
-        var_dump($percorso);
         return $percorso;
     }
 
