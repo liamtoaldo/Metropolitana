@@ -175,7 +175,7 @@
     if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) {
         ?>
         <div class="fixed-action-btn">
-            <a class="btn-floating btn-large red" title="Conferma prenotazione">
+            <a class="btn-floating btn-large red pulse" title="Conferma prenotazione">
                 <i class="large material-icons">check</i>
             </a>
         </div>
@@ -300,6 +300,8 @@
                     goto retry;
                 }
             }
+
+            $_SESSION["transiti"] = $transiti;
 
             ?>
             <ul class="collection" style="max-height: 700px; overflow-y: auto;">

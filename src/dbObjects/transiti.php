@@ -11,6 +11,7 @@ class Transiti
     public DateTime $OraArrivo;
     public int $PosizioneNelViaggio;
     public float $Costo;
+    public string $Treno;
 
 
     public function __construct(int $idViaggio, string $stazionePartenza, string $stazioneArrivo, bool $inizioViaggio, bool $fineViaggio, DateTime $oraPartenza, DateTime $oraArrivo, int $posizioneNelViaggio, float $costo)
