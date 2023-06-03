@@ -4,6 +4,9 @@
 
 <head>
     <?php
+    //Start buffering, so that we can use headers "after" rendering html elements.
+    ob_start();
+
     include '../src/dbObjects/stazione_passa_linea.php';
     include '../src/dbObjects/stazione.php';
     include '../src/dbObjects/transiti.php';
@@ -174,7 +177,7 @@
     <?php
     if (isset($_GET["from"]) && isset($_GET["to"]) && isset($_GET["when"])) {
         ?>
-        <div class="fixed-action-btn">
+        <div class="fixed-action-btn" id="fab-button">
             <a class="btn-floating btn-large red pulse" title="Conferma prenotazione">
                 <i class="large material-icons">check</i>
             </a>
@@ -209,7 +212,6 @@
                     <li><a href="prenotazioni.php"><i class="large material-icons">confirmation_number</i>
                             <p>Prenotazioni</p>
                         </a></li>
-                    <li><a href="page2.html">Page 2</a></li>
                     <li>
                         <a class="dropdown-trigger" href="#" data-target='dropdown1'><i
                                 class="large material-icons">person</i>
@@ -279,6 +281,9 @@
             //Obtain the list of routes with Dijkstra
             $percorso = $grafo->dijkstra(new Nodo($partenza[0]), new Nodo($arrivo[0]));
 
+            //See if the route was found
+            $percorsoNonTrovato = count($percorso) == 0;
+
             //Calculate costs and timetables after having the routes
             $transiti = [];
 
@@ -306,6 +311,23 @@
             ?>
             <ul class="collection" style="max-height: 700px; overflow-y: auto;">
                 <?php
+                if ($percorsoNonTrovato) {
+                    ?>
+                    <li class="collection-item avatar custom-collection-item" style="display: flex; align-items: center;">
+                        <div>
+                            <p><b>Percorso non trovato</b></p>
+                        </div>
+                    </li>
+                    <!-- Also hide the fab button -->
+                    <script>
+                        function hideFabButton() {
+                            var fabButton = document.getElementById("fab-button");
+                            fabButton.style.display = "none";
+                        }
+                        hideFabButton();
+                    </script>
+                    <?php
+                }
                 $i = 1;
                 foreach ($transiti as $transito) {
                     ?>
@@ -529,7 +551,7 @@ function createGraph(Grafo $grafo, array $stazioni): Grafo
     }
 
     foreach ($stazioniLineate as $stl) {
-        //TODO get station from stazioniArray that has same name as stl->StazioneNome
+        //get station from stazioniArray that has same name as stl->StazioneNome
         $st = array_filter($stazioni, function ($staz) use ($stl) {
             return $staz->Nome === $stl->StazioneNome;
         });

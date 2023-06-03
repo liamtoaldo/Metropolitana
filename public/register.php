@@ -32,6 +32,10 @@
     </style>
 
     <?php
+    session_start();
+    if (isset($_SESSION["Username"]) || isset($_COOKIE["Username"])) {
+        header('Location:index.php');
+    }
     //create the connection
     $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
 
@@ -74,7 +78,7 @@
                 $result = $conn->execute_query($query, array($name, $surname, $cf, $age, $passwordHash, $username));
             }
 
-            if(!$result) {
+            if (!$result) {
                 echo "Errore MYSQL:" . $conn->error;
                 return;
             }

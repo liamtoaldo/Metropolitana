@@ -110,6 +110,11 @@ class Grafo
                 break;
             }
         }
+
+        if (!isset($nodiPrecedenti[$fine])) {
+            return []; // No path found
+        }
+
         $percorso[] = $fine;
         $tmp = $fine;
         while (!in_array($inizio, $percorso)) {
