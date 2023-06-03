@@ -106,7 +106,6 @@
             width: 100%;
         }
 
-        /* Position form on top of map */
         #form-container {
             width: 70%;
             position: absolute;
@@ -247,7 +246,7 @@
                 $costoTotale += $transito->Costo;
             }
         }
-        //TODO calculate changes, total cost, and number of stops and time needed
+        //calculate changes, total cost, and number of stops and time needed
         $numCambi = count($treni);
         $numFermate = count($transiti);
 
@@ -374,7 +373,7 @@
                 $transito->Treno = $row["idTreno"] . " " . $row["Marca"] . " " . $row["Modello"];
             }
         }
-        //TODO calculate changes, total cost, and number of stops and time needed
+        //calculate changes, total cost, and number of stops and time needed
         $numCambi = $prenotazione["NumCambi"];
         $numFermate = $prenotazione["NumFermate"];
 

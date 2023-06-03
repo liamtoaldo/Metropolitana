@@ -1,4 +1,4 @@
-var themeColor;
+var themeColor = "#822433";
 
 // Check browser support
 if (typeof (Storage) !== "undefined") {
@@ -29,6 +29,8 @@ $('.timepicker-close').css('color', themeColor);
 $('.timepicker-hour-hand').css('background-color', themeColor);
 $('.timepicker-minute-hand').css('background-color', themeColor);
 $('.timepicker-second-hand').css('background-color', themeColor);
+$('.tabs .tab>a.active').css('color', themeColor);
+$('.tabs .indicator').css('background-color', themeColor);
 
 $(document).ready(function () {
 
@@ -62,6 +64,8 @@ $(document).ready(function () {
     $('.timepicker-hour-hand').css('background-color', themeColor);
     $('.timepicker-minute-hand').css('background-color', themeColor);
     $('.timepicker-second-hand').css('background-color', themeColor);
+    $('.tabs .tab a.active').css('color', themeColor);
+    $('.tabs .indicator').css('background-color', themeColor);
 
     // Update Theme Color
     if (typeof (Storage) !== "undefined") {

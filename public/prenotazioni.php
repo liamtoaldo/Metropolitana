@@ -1,2 +1,1 @@
-<!--TODO decide if single prenotations should be included in the same file or not.-->
 <!--In this file are displayed a list of prenotations, and once clicked the prenotation with the according transits will be displayed-->

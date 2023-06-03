@@ -61,7 +61,6 @@
 
         $result = $conn->execute_query($queryCheck, array($username));
 
-        //TODO change this to do something more fancy, like a text under the form that is shown only when the user already exists
         if ($result->num_rows != 0) {
             echo '<script type="text/javascript">';
             echo 'alert("Lo username da te inserito è già esistente. Fai il login.");';
@@ -201,7 +200,6 @@
         alt="Background image">
 
     <!-- Check if the two passwords are the same -->
-    <!--TODO change this to do something more fancy, like a text under the form that is shown only when the two passwords are not equal-->
     <script>
         $(document).ready(function () {
             const password1 = document.querySelector('#password');
