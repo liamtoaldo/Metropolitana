@@ -21,6 +21,12 @@
     $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
     $conn->set_charset('utf8');
 
+    //Get the user that will be later used 
+    $query = "SELECT * FROM utente WHERE Username = ?";
+    $result = $conn->execute_query($query, array($username));
+    $row = $result->fetch_assoc();
+    $utente = new Utente($row['idUtente'], $row['Nome'], $row['Cognome'], $row['CF'], $row['Eta'], $row['Professione'], $row['PasswordHash'], $row['Username']);
+
     $usernameNew = NULL;
     $name = NULL;
     $surname = NULL;
@@ -29,7 +35,6 @@
     $job = NULL;
     $passwordHash = NULL;
 
-    //TODO handle password change logic
     //At this point the variables are already set, since the fields are required, but we check anyway
     if (isset($_POST['username']) && isset($_POST['name']) && isset($_POST['surname']) && isset($_POST["cf"]) && isset($_POST["age"])) {
         $usernameNew = $_POST['username'];
@@ -69,8 +74,36 @@
             $_SESSION["Username"] = $usernameNew;
             // Create cookie with duration 7 days to remember the user
             setcookie("Username", $usernameNew, time() + (86400 * 7), "/");
+
+
+            //Update the user that will be later used 
+            $query = "SELECT * FROM utente WHERE Username = ?";
+            $result = $conn->execute_query($query, array($username));
+            $row = $result->fetch_assoc();
+            $utente = new Utente($row['idUtente'], $row['Nome'], $row['Cognome'], $row['CF'], $row['Eta'], $row['Professione'], $row['PasswordHash'], $row['Username']);
         }
 
+    } else if (isset($_POST["password-old"]) && isset($_POST["password"]) && isset($_POST["password2"])) {
+        $passwordOld = $_POST["password-old"];
+        $password = $_POST["password"];
+        $password2 = $_POST["password2"];
+
+        $oldPasswordHash = hash("sha256", $passwordOld);
+        $newPasswordHash = hash("sha256", $password);
+
+        //check if the old password is correct
+        $passwordHash = $utente->PasswordHash;
+
+        if ($passwordHash == $oldPasswordHash) {
+            // correct old password
+            $query = "UPDATE utente SET PasswordHash = ? WHERE username = ?";
+            $result = $conn->execute_query($query, array($newPasswordHash, $username));
+        } else {
+            //incorrect old password
+            echo '<script type="text/javascript">';
+            echo 'alert("La password vecchia da te inserita non è corretta. Se hai problemi, contatta l\'amministratore");';
+            echo '</script>';
+        }
     }
     ?>
     <style>
@@ -212,13 +245,6 @@
             </div>
         </div>
     </nav>
-    <?php
-    $query = "SELECT * FROM utente WHERE Username = ?";
-    $result = $conn->execute_query($query, array($username));
-    $row = $result->fetch_assoc();
-    $utente = new Utente($row['idUtente'], $row['Nome'], $row['Cognome'], $row['CF'], $row['Eta'], $row['Professione'], $row['PasswordHash'], $row['Username']);
-
-    ?>
     <div id="form-container">
         <div class="row">
             <div class="col s12">
@@ -247,7 +273,7 @@
                     </a>
                 </h5>
                 <br>
-                <form action="<?php echo $_SERVER["PHP_SELF"] ?>" method="post">
+                <form action="<?php echo $_SERVER["PHP_SELF"] ?>" method="post" id="general-form">
                     <div class="input-field">
                         <i class="material-icons prefix">account_circle</i>
                         <input id="username" type="text" class="validate" name="username" disabled required
@@ -299,7 +325,7 @@
             <div id="delete-account-tab" class="col s12">
                 <!-- Delete Account tab content goes here -->
                 <h5><b>Modifica la tua password</b></h5>
-                <form action="logout.php" method="post" id="advanced-form">
+                <form action="<?= $_SERVER["PHP_SELF"] ?>" method="post" id="advanced-form">
                     <div class="input-field">
                         <i class="material-icons prefix">lock_clock</i>
                         <input id="password-old" type="password" class="validate" name="password-old">
@@ -346,7 +372,7 @@
             $('ul.tabs').tabs();
         });
         function toggleEdit() {
-            const inputs = document.querySelectorAll('input');
+            const inputs = document.querySelectorAll('#general-form input');
             inputs.forEach(input => input.disabled = !input.disabled);
             const cancelButton = document.querySelector('#cancel-btn');
             cancelButton.toggleAttribute('disabled');
@@ -369,6 +395,36 @@
                 // If the user clicks "Cancel", prevent the form from submitting
                 event.preventDefault();
             }
+        });
+    </script>
+    <script>
+        //Check if the two passwords in the advanced form are the same
+        $(document).ready(function () {
+            const password1 = document.querySelector('#password');
+            const password2 = document.querySelector('#password2');
+            const passwordForm = document.querySelector('#advanced-form');
+
+            function checkPasswords() {
+                const helperText = password2.nextElementSibling;
+                if (password1.value === password2.value) {
+                    helperText.classList.remove('invalid');
+                    helperText.classList.add('valid');
+                } else {
+                    helperText.classList.remove('valid');
+                    helperText.classList.add('invalid');
+                }
+            }
+
+            password1.addEventListener('input', checkPasswords);
+            password2.addEventListener('input', checkPasswords);
+
+            passwordForm.addEventListener('submit', (event) => {
+                if (password1.value !== password2.value) {
+                    event.preventDefault();
+                    alert('Le password non sono uguali. Riprova');
+                }
+            });
+
         });
     </script>
 </body>
