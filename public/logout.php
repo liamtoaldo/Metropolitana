@@ -40,7 +40,7 @@ if (isset($_POST["delete"])) {
     $result = $conn->execute_query($query, array($username));
 }
 //Unset cookie and session data
-unset($_SESSION["Username"]);
+session_unset();
 setcookie('Username', '', time() - 3600, '/');
 header("Location:login.php");
 ?>

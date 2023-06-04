@@ -279,7 +279,7 @@
         //add prenotation and also prenotation has transiti, so that we can then insert the correct id and date fields
         //Insert new prenotazione
         $query = "INSERT INTO prenotazione (DataPrenotazione, OraPartenza, OraArrivo, Costo, NumCambi, NumFermate, Promozione, TempoPercorrenza, Utente_idUtente)
-        VALUES ('" . $datetime->format("Y-d-m H:i:s") . "', '" . $partenza->format("H:i:s") . "', '" . $arrivo->format("H:i:s") . "', $costoTotale, $numCambi, $numFermate, 0, $tempoPercorrenza, $idUtente)"; //TODO handle promozione
+        VALUES ('" . $datetime->format("Y-m-d H:i:s") . "', '" . $partenza->format("H:i:s") . "', '" . $arrivo->format("H:i:s") . "', $costoTotale, $numCambi, $numFermate, 0, $tempoPercorrenza, $idUtente)"; //TODO handle promozione
         $conn->execute_query($query);
         $idPren = $conn->insert_id;
 
@@ -356,7 +356,7 @@
         $result = $conn->execute_query($query, array($idPren));
         $prenotazione = $result->fetch_assoc();
 
-        $datetime = DateTime::createFromFormat('Y-d-m H:i:s', $prenotazione["DataPrenotazione"]);
+        $datetime = DateTime::createFromFormat('Y-m-d H:i:s', $prenotazione["DataPrenotazione"]);
 
         // Output the date in the desired format
         $date = $datetime->format('d/m/Y');

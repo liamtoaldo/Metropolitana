@@ -60,6 +60,10 @@
             }
             //redirect to home
             header("Location: index.php");
+        } else {
+            echo '<script type="text/javascript">';
+            echo 'alert("Lo username da te inserito non esiste oppure hai sbagliato password. Riprova.");';
+            echo '</script>';
         }
     }
     ?>
