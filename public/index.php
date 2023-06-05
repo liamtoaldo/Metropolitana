@@ -467,7 +467,7 @@
             popupAnchor: [0, -20]
         });
         var customIcon = L.icon({
-            iconUrl: '/images/marker.png',
+            iconUrl: 'images/marker.png',
             iconSize: [20, 20],
             iconAnchor: [10, 10],
             popupAnchor: [0, -20]
