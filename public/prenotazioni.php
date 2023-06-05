@@ -173,7 +173,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="images/favicon.png">
 
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -328,7 +328,7 @@
 
     </div>
     <!-- Change primary color -->
-    <script src="../scripts/changeColor.js"></script>
+    <script src="scripts/changeColor.js"></script>
     <script>
         //Initialize the dropdown trigger for account menu
         $('.dropdown-trigger').dropdown();
