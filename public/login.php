@@ -38,6 +38,7 @@
     }
     //create the connection
     $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn->set_charset('utf8');
 
     $username = NULL;
     $passwordHash = NULL;
@@ -57,6 +58,7 @@
             if (isset($_POST["remember"])) {
                 // Create cookie with duration 7 days to remember the user
                 setcookie("Username", $username, time() + (86400 * 7), "/");
+                setcookie("PasswordHash", $passwordHash, time() + (86400 * 7), "/");
             }
             //redirect to home
             header("Location: index.php");

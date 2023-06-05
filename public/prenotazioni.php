@@ -9,49 +9,37 @@
     //Set default zone to Rome, since it's rome subway
     date_default_timezone_set('Europe/Rome');
 
+    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn->set_charset('utf8');
+
     session_start();
     //Check if user is logged in
     $username = NULL;
     if (isset($_SESSION["Username"])) {
         $username = $_SESSION["Username"];
     } else if (isset($_COOKIE["Username"])) {
+        //If user has a cookie, we check if he edited the username to act like he was another user, so we check through the password
         $username = $_COOKIE["Username"];
+        $passwordHash = $_COOKIE["PasswordHash"];
+        $query = "SELECT * FROM utente WHERE Username = ? AND PasswordHash = ?";
+        $result = $conn->execute_query($query, array($username, $passwordHash));
+        if ($result->num_rows == 0) {
+            //The user did something malicious, so let's log him out and remove the cookies
+            setcookie('Username', '', time() - 3600, '/');
+            setcookie('PasswordHash', '', time() - 3600, '/');
+            header('Location:login.php');
+        }
     } else {
         header('Location:login.php');
     }
 
 
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
-    $conn->set_charset('utf8');
 
     //Get the user that will be later used 
     $query = "SELECT * FROM utente WHERE Username = ?";
     $result = $conn->execute_query($query, array($username));
     $row = $result->fetch_assoc();
     $utente = new Utente($row['idUtente'], $row['Nome'], $row['Cognome'], $row['CF'], $row['Eta'], $row['Professione'], $row['PasswordHash'], $row['Username']);
-
-    //if delete is set, that means that the user has chosen to delete the prenotazione
-    if (isset($_POST["delete"])) {
-        $idPrenotazione = $_POST["id_prenotazione"];
-        //We first check if the user has made any malicious manipulation to delete someone else's prenotazione, so we must be sure that we are deleting a prenotazione owned by the user
-        $query = "SELECT * FROM prenotazione WHERE idPrenotazione = ? AND Utente_idUtente = ?";
-        $result = $conn->execute_query($query, array($idPrenotazione, $utente->idUtente));
-        if ($result->num_rows == 0) {
-            echo '<script type="text/javascript">';
-            echo 'alert("Pensavi di aver hackerato la metro? ATAC-CATE AR C***O!!");';
-            echo '</script>';
-            goto endDelete;
-        }
-
-        //Delete first all of the prenotazione has transiti where the user has made a prenotazione
-        $query = "DELETE FROM prenotazione_has_transiti WHERE Prenotazione_idPrenotazione = ?";
-        $conn->execute_query($query, array($idPrenotazione));
-
-        //Delete then the prenotazione
-        $query = "DELETE FROM prenotazione WHERE idPrenotazione = ?";
-        $conn->execute_query($query, array($idPrenotazione));
-    }
-    endDelete:
     ?>
     <style>
         .logo-img {
@@ -226,6 +214,32 @@
             </div>
         </div>
     </nav>
+    <?php
+    //if delete is set, that means that the user has chosen to delete the prenotazione
+    if (isset($_POST["delete"])) {
+        $idPrenotazione = $_POST["id_prenotazione"];
+        //We first check if the user has made any malicious manipulation to delete someone else's prenotazione, so we must be sure that we are deleting a prenotazione owned by the user
+        $query = "SELECT * FROM prenotazione WHERE idPrenotazione = ? AND Utente_idUtente = ?";
+        $result = $conn->execute_query($query, array($idPrenotazione, $utente->idUtente));
+        if ($result->num_rows == 0) {
+            goto endDelete;
+        }
+
+        //Delete first all of the prenotazione has transiti where the user has made a prenotazione
+        $query = "DELETE FROM prenotazione_has_transiti WHERE Prenotazione_idPrenotazione = ?";
+        $conn->execute_query($query, array($idPrenotazione));
+
+        //Delete then the prenotazione
+        $query = "DELETE FROM prenotazione WHERE idPrenotazione = ?";
+        $conn->execute_query($query, array($idPrenotazione));
+        ?>
+        <script>
+            M.toast({ html: 'Prenotazione eliminata con successo!', classes: 'rounded' });
+        </script>
+        <?php
+    }
+    endDelete:
+    ?>
     <div id="form-container">
         <center>
             <h4><b>Le tue prenotazioni</b></h4>

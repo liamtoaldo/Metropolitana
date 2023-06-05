@@ -42,5 +42,6 @@ if (isset($_POST["delete"])) {
 //Unset cookie and session data
 session_unset();
 setcookie('Username', '', time() - 3600, '/');
+setcookie('PasswordHash', '', time() - 3600, '/');
 header("Location:login.php");
 ?>
