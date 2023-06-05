@@ -190,7 +190,7 @@
     <nav>
         <div class="nav-wrapper">
             <div class="container">
-                <a href="index.php" class="brand-logo"><img class="logo-img" src="https://i.imgur.com/oJTV2bZ.png"
+                <a href="index.php" class="brand-logo"><img class="logo-img" src="images/logo.png"
                         alt="Logo"></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="prenotazioni.php"><i class="large material-icons">confirmation_number</i>
