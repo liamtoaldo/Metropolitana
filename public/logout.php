@@ -3,6 +3,8 @@ session_start();
 //If the user clicked delete account, delete it
 if (isset($_POST["delete"])) {
     require '../src/dbObjects/utente.php';
+    require '../src/config.php';
+
     //Check if user is logged in and get the username
     $username = NULL;
     if (isset($_SESSION["Username"])) {
@@ -14,7 +16,7 @@ if (isset($_POST["delete"])) {
     }
 
     //Start the connection
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn = mysqli_connect(Config::$DBUrl, Config::$DBUsername, Config::$DBPassword, Config::$DBName);
     $conn->set_charset('utf8');
 
     //Get the user that will be later used 

@@ -5,8 +5,10 @@
 <head>
     <?php
     require '../src/dbObjects/utente.php';
+    require '../src/config.php';
+    $Config = new Config();
 
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn = mysqli_connect($Config->DBUrl, $Config->DBUsername, $Config->DBPassword, $Config->DBName);
     $conn->set_charset('utf8');
 
     session_start();

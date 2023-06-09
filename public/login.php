@@ -32,12 +32,14 @@
     </style>
 
     <?php
+    require '../src/config.php';
+
     session_start();
     if (isset($_SESSION["Username"]) || isset($_COOKIE["Username"])) {
         header('Location:index.php');
     }
     //create the connection
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn = mysqli_connect(Config::$DBUrl, Config::$DBUsername, Config::$DBPassword, Config::$DBName);
     $conn->set_charset('utf8');
 
     $username = NULL;

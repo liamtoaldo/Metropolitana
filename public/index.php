@@ -14,8 +14,9 @@
     include '../src/graph/arco.php';
     include '../src/graph/nodo.php';
     include '../src/graph/objectStorage.php';
+    require '../src/config.php';
 
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn = mysqli_connect(Config::$DBUrl, Config::$DBUsername, Config::$DBPassword, Config::$DBName);
     $conn->set_charset('utf8');
 
     session_start();
@@ -215,8 +216,7 @@
     <nav>
         <div class="nav-wrapper">
             <div class="container">
-                <a href="index.php" class="brand-logo"><img class="logo-img" src="images/logo.png"
-                        alt="Logo"></a>
+                <a href="index.php" class="brand-logo"><img class="logo-img" src="images/logo.png" alt="Logo"></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="prenotazioni.php"><i class="large material-icons">confirmation_number</i>
                             <p>Prenotazioni</p>

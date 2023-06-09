@@ -5,11 +5,12 @@
 <head>
     <?php
     include '../src/dbObjects/transiti.php';
+    require '../src/config.php';
 
     //Set default zone to Rome, since it's rome subway
     date_default_timezone_set('Europe/Rome');
 
-    $conn = mysqli_connect("127.0.0.1", "root", "", "metro");
+    $conn = mysqli_connect(Config::$DBUrl, Config::$DBUsername, Config::$DBPassword, Config::$DBName);
     $conn->set_charset('utf8');
 
     session_start();
